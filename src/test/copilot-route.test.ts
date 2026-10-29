@@ -76,4 +76,37 @@ describe('POST /api/copilot', () => {
       isLocalFallback: false,
     });
   });
+
+  it('rejects unsafe numeric values before they reach the model', async () => {
+    const response = await POST(makeRequest({
+      ...validRequest,
+      eventState: {
+        ...validRequest.eventState,
+        profile: {
+          ...validRequest.eventState.profile,
+          guestCount: -1,
+        },
+      },
+    }));
+
+    expect(response.status).toBe(400);
+  });
+
+  it('rejects oversized request bodies', async () => {
+    const request = new NextRequest('http://localhost/api/copilot', {
+      method: 'POST',
+      body: JSON.stringify(validRequest),
+      headers: {
+        'content-type': 'application/json',
+        'content-length': '256001',
+      },
+    });
+
+    const response = await POST(request);
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toMatchObject({
+      error: 'Request body is too large',
+    });
+  });
 });

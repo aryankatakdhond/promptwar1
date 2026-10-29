@@ -231,7 +231,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     dispatch({ type: '_HYDRATE', state: getInitialState() });
     setHydrated(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounced auto-save — only after hydration so we don't overwrite with SSR skeleton

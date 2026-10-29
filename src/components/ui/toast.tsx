@@ -66,6 +66,8 @@ interface ToastItemProps {
 export function ToastItem({ toast, onDismiss }: ToastItemProps) {
   return (
     <div
+      role={toast.variant === 'error' ? 'alert' : 'status'}
+      aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
       className={cn(
         'flex items-start gap-3 rounded-brand border p-4 shadow-lg pointer-events-auto w-80',
         variantClasses[toast.variant ?? 'default'],
@@ -78,6 +80,7 @@ export function ToastItem({ toast, onDismiss }: ToastItemProps) {
         )}
       </div>
       <button
+        type="button"
         onClick={() => onDismiss(toast.id)}
         className="shrink-0 opacity-70 hover:opacity-100 transition-opacity"
         aria-label="Dismiss"

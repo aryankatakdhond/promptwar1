@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { use, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppContext } from '@/context/AppContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -122,8 +122,10 @@ function DashboardPageInner({ id }: { id: string }) {
 export default function DashboardPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = use(params);
+
   return (
     <Suspense
       fallback={
@@ -137,7 +139,7 @@ export default function DashboardPage({
         </div>
       }
     >
-      <DashboardPageInner id={params.id} />
+      <DashboardPageInner id={id} />
     </Suspense>
   );
 }

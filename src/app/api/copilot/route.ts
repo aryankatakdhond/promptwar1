@@ -6,14 +6,14 @@ import { AffectedEntitySchema, ChangeOperationTypeSchema } from '@/schemas/ai.sc
 const RequestSchema = z.object({
   eventState: z.object({
     profile: z.object({
-      id: z.string(),
-      name: z.string(),
-      type: z.string(),
-      date: z.string(),
-      guestCount: z.number(),
-      totalBudget: z.number(),
-      currency: z.string(),
-      city: z.string(),
+      id: z.string().min(1).max(100),
+      name: z.string().min(1).max(200),
+      type: z.string().min(1).max(50),
+      date: z.string().date(),
+      guestCount: z.number().finite().int().nonnegative().max(1_000_000),
+      totalBudget: z.number().finite().int().nonnegative().max(1_000_000_000_000),
+      currency: z.string().length(3),
+      city: z.string().min(1).max(100),
     }),
     budgetSummary: z.object({
       totalBudget: z.number(),
@@ -32,8 +32,8 @@ const RequestSchema = z.object({
   userMessage: z.string().min(1).max(2000),
   conversationHistory: z.array(z.object({
     role: z.enum(['user', 'assistant']),
-    content: z.string(),
-    timestamp: z.string(),
+    content: z.string().max(4000),
+    timestamp: z.string().datetime(),
   })).max(10),
 });
 
@@ -55,6 +55,11 @@ const AiResponseSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const contentLength = Number(req.headers.get('content-length') ?? 0);
+    if (contentLength > 256_000) {
+      return NextResponse.json({ error: 'Request body is too large', isLocalFallback: false }, { status: 413 });
+    }
+
     let body: unknown;
     try {
       body = await req.json();
