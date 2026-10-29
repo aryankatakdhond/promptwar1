@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MOMENTRA
 
-## Getting Started
+MOMENTRA is a planning command center for weddings, birthdays, anniversaries, and community events. It combines budget planning, timeline management, vendors, guests, run-of-show scheduling, risks, ideas, and an AI/local copilot in one responsive Next.js application.
 
-First, run the development server:
+## Requirements
+
+- Node.js 18 or newer
+- npm
+
+## Setup
 
 ```bash
+npm install
+copy .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | No | Enables Gemini responses for the Copilot. Without it, MOMENTRA uses its deterministic local engine. |
+| `NEXT_PUBLIC_APP_ENV` | No | Application environment label, such as `development` or `production`. |
 
-## Learn More
+## Demo walkthrough
 
-To learn more about Next.js, take a look at the following resources:
+1. Open the welcome screen and select one of the seeded demo events.
+2. Review the overview, budget, timeline, vendors, guests, run of show, risks, and ideas tabs.
+3. Edit planning data and observe Ripple Replanning updates to related entities.
+4. Use Copilot for planning suggestions or budget scenarios.
+5. Export event data as PDF or CSV from the relevant dashboard surfaces.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Event data is persisted in browser storage, so the demo remains usable without a backend database or API key.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture
 
-## Deploy on Vercel
+- `src/app` contains the Next.js App Router pages and the server-side Copilot route.
+- `src/components` contains the dashboard and shared UI.
+- `src/context`, `src/hooks`, and `src/data` provide application state, seeded events, and persistence.
+- `src/lib` contains deterministic budget, timeline, risk, ripple, export, and currency engines.
+- `src/types` and `src/schemas` define the domain contracts and runtime validation.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Validation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm test
+npm run build
+```
+
+The test suite covers the calculation engines and persistence boundaries.
+
+## Product capabilities
+
+- Browser persistence keeps event plans available across reloads without a database.
+- The deterministic local Copilot engine provides complete planning workflows without credentials.
+- Optional Gemini integration adds live AI suggestions while keeping calculations and changeset application authoritative in MOMENTRA.
+- PDF and CSV exports are generated directly from the current event state.
+
+## Deployment
+
+The app can be deployed to Vercel or another Node-compatible Next.js host:
+
+```bash
+npm run build
+npm start
+```
+
+Set `GEMINI_API_KEY` in the deployment environment if Gemini-powered responses are desired.
