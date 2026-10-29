@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import type { ChangeOperationType, AffectedEntity } from '@/types/ai';
+import { AffectedEntitySchema, ChangeOperationTypeSchema } from '@/schemas/ai.schema';
 
 const RequestSchema = z.object({
   eventState: z.object({
@@ -42,23 +42,26 @@ const AiResponseSchema = z.object({
   requiresConfirmation: z.boolean().default(true),
   followUpQuestion: z.string().nullable().optional(),
   operations: z.array(z.object({
-    type: z.string(),
+    type: ChangeOperationTypeSchema,
     entityId: z.string().nullable().optional(),
     field: z.string().nullable().optional(),
     newValue: z.unknown(),
     reason: z.string(),
   })).default([]),
-  affectedEntities: z.array(z.object({
-    entityType: z.string(),
-    entityName: z.string(),
-    changeDescription: z.string(),
-    isHighImpact: z.boolean().default(false),
-  })).default([]),
+  affectedEntities: z.array(
+    AffectedEntitySchema.extend({ isHighImpact: z.boolean().default(false) }),
+  ).default([]),
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Request body must be valid JSON', isLocalFallback: false }, { status: 400 });
+    }
+
     const parsed = RequestSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -146,7 +149,7 @@ IMPORTANT: Only suggest operations that are explicitly supported. Never suggest 
       id: uuidv4(),
       userRequest: parsed.data.userMessage,
       operations: validated.data.operations.map(op => ({
-        type: op.type as ChangeOperationType,
+        type: op.type,
         entityId: op.entityId ?? undefined,
         field: op.field ?? undefined,
         newValue: op.newValue,
@@ -155,7 +158,7 @@ IMPORTANT: Only suggest operations that are explicitly supported. Never suggest 
       summary: validated.data.explanation,
       requiresConfirmation: validated.data.requiresConfirmation,
       affectedEntities: validated.data.affectedEntities.map(e => ({
-        entityType: e.entityType as AffectedEntity['entityType'],
+        entityType: e.entityType,
         entityName: e.entityName,
         changeDescription: e.changeDescription,
         isHighImpact: e.isHighImpact,
